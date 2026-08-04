@@ -107,6 +107,10 @@ analisis_klb <- function(data,
   paparan <- analisis_paparan(df, ds$paparan, konfigurasi$desain)
   multivariabel <- analisis_multivariabel(df, ds$paparan, paparan, konfigurasi)
 
+  if (length(multivariabel$peringatan) > 0) {
+    peringatan <- c(peringatan, multivariabel$peringatan)
+  }
+
   if (!is.null(paparan) && any(paparan$koreksi)) {
     peringatan <- c(peringatan, paste(
       "Sebagian tabel 2x2 memiliki sel bernilai nol sehingga estimasi memakai koreksi 0,5",

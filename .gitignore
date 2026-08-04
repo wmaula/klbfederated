@@ -1,7 +1,8 @@
-.Rproj.user
-.Rhistory
-.RData
-.Ruserdata
-*.sqlite
 *.db
+*.sqlite
+.DS_Store
+.RData
+.Rhistory
+.Rproj.user
+.Ruserdata
 klb-data/

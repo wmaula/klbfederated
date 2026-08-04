@@ -11,8 +11,8 @@ Menyediakan dua aplikasi Shiny untuk penyelidikan kejadian luar biasa (KLB) deng
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/awatsiq/klbfederated}
-  \item Report bugs at \url{https://github.com/awatsiq/klbfederated/issues}
+  \item \url{https://github.com/wmaula/klbfederated}
+  \item Report bugs at \url{https://github.com/wmaula/klbfederated/issues}
 }
 
 }

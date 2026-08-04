@@ -98,7 +98,7 @@ analisis_paparan <- function(df, paparan, desain = "kohort") {
 #' @return Daftar berisi `model`, `tabel`, dan `catatan`.
 #' @export
 analisis_multivariabel <- function(df, paparan, bivariat, konfigurasi = konfigurasi_analisis()) {
-  kosong <- list(model = "tidak_dijalankan", tabel = NULL, catatan = "")
+  kosong <- list(model = "tidak_dijalankan", tabel = NULL, catatan = "", peringatan = character(0))
   if (is.null(bivariat) || nrow(bivariat) == 0) return(kosong)
 
   n_kasus <- sum(df$sakit == 1, na.rm = TRUE)
@@ -124,15 +124,25 @@ analisis_multivariabel <- function(df, paparan, bivariat, konfigurasi = konfigur
   dat <- dat[stats::complete.cases(dat), , drop = FALSE]
   rumus <- stats::as.formula(paste("sakit ~", paste(kandidat, collapse = " + ")))
 
-  hasil <- tryCatch({
-    if (identical(konfigurasi$desain, "kasus_kontrol")) {
-      fit <- suppressWarnings(stats::glm(rumus, family = stats::binomial(), data = dat))
-      list(fit = fit, vcov = stats::vcov(fit), model = "logistik")
-    } else {
-      fit <- suppressWarnings(stats::glm(rumus, family = stats::poisson(link = "log"), data = dat))
-      list(fit = fit, vcov = sandwich::vcovHC(fit, type = "HC0"), model = "poisson_robust")
-    }
-  }, error = function(e) list(galat = conditionMessage(e)))
+  # Peringatan model dikumpulkan, bukan dibungkam, karena masalah seperti
+  # kovarians robust yang mendekati singular perlu diketahui analis.
+  peringatan_model <- character(0)
+  kumpulkan <- function(w) {
+    peringatan_model <<- c(peringatan_model, conditionMessage(w))
+    invokeRestart("muffleWarning")
+  }
+
+  hasil <- tryCatch(
+    withCallingHandlers({
+      if (identical(konfigurasi$desain, "kasus_kontrol")) {
+        fit <- stats::glm(rumus, family = stats::binomial(), data = dat)
+        list(fit = fit, vcov = stats::vcov(fit), model = "logistik")
+      } else {
+        fit <- stats::glm(rumus, family = stats::poisson(link = "log"), data = dat)
+        list(fit = fit, vcov = sandwich::vcovHC(fit, type = "HC0"), model = "poisson_robust")
+      }
+    }, warning = kumpulkan),
+    error = function(e) list(galat = conditionMessage(e)))
 
   if (!is.null(hasil$galat)) {
     kosong$catatan <- paste("Model gagal dijalankan:", hasil$galat)
@@ -166,7 +176,21 @@ analisis_multivariabel <- function(df, paparan, bivariat, konfigurasi = konfigur
             angka_id(ambang, 2))
   }
 
-  list(model = hasil$model, tabel = tabel, catatan = catatan)
+  peringatan <- character(0)
+  if (any(grepl("singular", peringatan_model, ignore.case = TRUE))) {
+    peringatan <- c(peringatan, paste(
+      "Matriks kovarians robust pada model multivariabel mendekati singular karena sebagian",
+      "pengamatan memiliki leverage mendekati satu. Selang kepercayaan pada model ini dapat",
+      "terlalu sempit atau terlalu lebar, sehingga hasil bivariat lebih dapat diandalkan."))
+  }
+  if (any(grepl("did not converge|fitted rates numerically 0|fitted probabilities numerically 0",
+                peringatan_model, ignore.case = TRUE))) {
+    peringatan <- c(peringatan, paste(
+      "Model multivariabel tidak konvergen sempurna atau menunjukkan pemisahan sempurna",
+      "(separation). Estimasi dan selang kepercayaannya perlu ditafsirkan dengan sangat hati-hati."))
+  }
+
+  list(model = hasil$model, tabel = tabel, catatan = catatan, peringatan = peringatan)
 }
 
 #' Diagnosis banding etiologi
