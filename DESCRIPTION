@@ -1,0 +1,44 @@
+Package: klbfederated
+Title: Analisis Federated Kejadian Luar Biasa untuk Dinas Kesehatan
+Version: 0.1.0
+Authors@R: 
+    person("Ahmad Watsiq", "Maula", , "ahmad.watsiq.m@mail.ugm.ac.id", role = c("aut", "cre"))
+Description: Menyediakan dua aplikasi Shiny untuk penyelidikan kejadian luar
+    biasa (KLB) dengan arsitektur federated. Node kabupaten atau kota menarik
+    data investigasi dari KoboToolbox, menjalankan analisis epidemiologi sesuai
+    Pedoman Penyelidikan dan Penanggulangan KLB Kementerian Kesehatan edisi
+    revisi III tahun 2020, menyusun draf laporan, lalu mengirim ringkasan
+    agregat ke dashboard provinsi. Data individu tidak pernah meninggalkan node
+    kabupaten atau kota. Fungsi analisis juga dapat dipanggil langsung dari
+    konsol R untuk pekerjaan di luar aplikasi.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+Depends: 
+    R (>= 4.1)
+Imports:
+    bslib,
+    DBI,
+    DT,
+    ggplot2,
+    htmltools,
+    httpuv,
+    httr2,
+    jsonlite,
+    leaflet,
+    lmtest,
+    officer,
+    rlang,
+    RSQLite,
+    sandwich,
+    shiny,
+    sodium,
+    stats,
+    utils
+Suggests:
+    testthat (>= 3.0.0),
+    knitr
+Config/testthat/edition: 3
+URL: https://github.com/awatsiq/klbfederated
+BugReports: https://github.com/awatsiq/klbfederated/issues
+Config/roxygen2/version: 8.0.0
