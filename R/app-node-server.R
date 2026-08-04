@@ -35,6 +35,9 @@ server_node <- function(con) {
 
     shiny::observeEvent(input$nav, {
       if (identical(input$nav, "keluar")) rv$pengguna <- NULL
+      # Permintaan katalog diulang saat tab Laporan dibuka, karena pesan yang
+      # dikirim tepat saat login dapat mendahului tampilnya antarmuka utama.
+      if (identical(input$nav, "Laporan")) session$sendCustomMessage("webllm_periksa", list())
     })
 
     boleh <- shiny::reactive(!is.null(rv$pengguna) && boleh_ubah(rv$pengguna$peran))
@@ -595,12 +598,6 @@ server_node <- function(con) {
     })
 
     ## ---------------- Laporan ----------------
-    shiny::observe({
-      shiny::updateSelectInput(session, "lap_bagian",
-        choices = stats::setNames(bagian_laporan()$kunci, bagian_laporan()$judul),
-        selected = shiny::isolate(input$lap_bagian) %||% "intisari")
-    })
-
     kumpulkan_meta <- function() {
       utils::modifyList(metadata_laporan(), list(
         principal_investigator = input$lap_pi %||% "",
@@ -673,13 +670,15 @@ server_node <- function(con) {
 
     ## ---------------- WebLLM ----------------
     shiny::observeEvent(input$webllm_katalog, {
-      katalog <- input$webllm_katalog
-      if (length(katalog) == 0) return(invisible())
-      pilihan <- vapply(katalog, function(m) m$id, character(1))
-      label <- vapply(katalog, function(m) {
-        if (is.null(m$vram)) m$id else sprintf("%s (perkiraan %s GB VRAM)", m$id, round(m$vram / 1024, 1))
-      }, character(1))
-      shiny::updateSelectInput(session, "llm_model", choices = stats::setNames(pilihan, label))
+      katalog <- normalkan_katalog(input$webllm_katalog)
+      if (nrow(katalog) == 0) return(invisible())
+      terpilih <- shiny::isolate(input$llm_model)
+      label <- ifelse(is.na(katalog$vram), katalog$id,
+                      sprintf("%s (perkiraan %s GB VRAM)", katalog$id,
+                              angka_id(katalog$vram / 1024, 1)))
+      shiny::updateSelectInput(
+        session, "llm_model", choices = stats::setNames(katalog$id, label),
+        selected = if (!is.null(terpilih) && terpilih %in% katalog$id) terpilih else katalog$id[1])
     })
 
     shiny::observeEvent(input$webllm_status, {

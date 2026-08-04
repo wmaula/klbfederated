@@ -22,9 +22,11 @@ ui_login_node <- function() {
 ui_node <- function() {
   shiny::fluidPage(
     theme = tema_app(),
+    # Penanda versi memaksa peramban mengambil ulang aset setelah package
+    # diperbarui, sehingga perbaikan tidak tertutup oleh cache lama.
     shiny::tags$head(
-      shiny::tags$link(rel = "stylesheet", href = "klb/styles.css"),
-      shiny::tags$script(src = "klb/webllm-bridge.js", type = "module")
+      shiny::tags$link(rel = "stylesheet", href = paste0("klb/styles.css?v=", versi_aset())),
+      shiny::tags$script(src = paste0("klb/webllm-bridge.js?v=", versi_aset()), type = "module")
     ),
     shiny::uiOutput("kerangka")
   )
@@ -222,7 +224,7 @@ ui_utama_node <- function(pengguna, node) {
                 shiny::p(class = "klb-kecil",
                   "Model berjalan penuh di peramban Anda melalui WebGPU. Isi laporan tidak dikirim ke layanan luar."),
                 shiny::uiOutput("llm_status"),
-                shiny::selectInput("llm_model", "Model", choices = NULL),
+                shiny::selectInput("llm_model", "Model", choices = model_bawaan()),
                 shiny::actionButton("llm_muat", "Muat model", class = "btn-outline-primary"),
                 shiny::actionButton("llm_lepas", "Lepas model", class = "btn-outline-secondary")
               )
@@ -239,7 +241,10 @@ ui_utama_node <- function(pengguna, node) {
             shiny::div(class = "card mb-3",
               shiny::div(class = "card-header", "Naskah laporan"),
               shiny::div(class = "card-body",
-                shiny::selectInput("lap_bagian", "Bab laporan", choices = NULL),
+                shiny::selectInput("lap_bagian", "Bab laporan",
+                                   choices = stats::setNames(bagian_laporan()$kunci,
+                                                             bagian_laporan()$judul),
+                                   selected = "intisari"),
                 shiny::actionButton("llm_tulis", "Tulis bagian ini dengan WebLLM", class = "btn-outline-primary"),
                 shiny::actionButton("lap_kembalikan", "Kembalikan draf template", class = "btn-outline-secondary"),
                 shiny::uiOutput("llm_periksa"),

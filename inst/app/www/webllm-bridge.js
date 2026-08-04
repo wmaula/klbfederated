@@ -59,25 +59,43 @@
     return engine;
   }
 
-  Shiny.addCustomMessageHandler("webllm_periksa", async function () {
+  // Daftar model bawaan, dipakai bila katalog dari CDN belum atau gagal dimuat.
+  const MODEL_BAWAAN = {
+    id: [
+      "Qwen2.5-3B-Instruct-q4f16_1-MLC",
+      "Llama-3.2-3B-Instruct-q4f16_1-MLC",
+      "Qwen2.5-1.5B-Instruct-q4f16_1-MLC",
+      "Llama-3.2-1B-Instruct-q4f16_1-MLC",
+    ],
+    vram: [2505, 2264, 1630, 879],
+  };
+
+  Shiny.addCustomMessageHandler("webllm_periksa", async function (pesan) {
     const ada = await webgpuTersedia();
     Shiny.setInputValue("webllm_webgpu", ada, { priority: "event" });
+    Shiny.setInputValue("webllm_katalog", MODEL_BAWAAN, { priority: "event" });
     if (ada) {
       try {
         const webllm = await muatPustaka();
-        const daftar = webllm.prebuiltAppConfig.model_list
-          .filter(function (m) {
-            return /Qwen2\.5-(1\.5B|3B)-Instruct-q4f16_1-MLC|Llama-3\.2-(1B|3B)-Instruct-q4f16_1-MLC/.test(
-              m.model_id
-            );
-          })
-          .map(function (m) {
-            return { id: m.model_id, vram: m.vram_required_MB || null };
-          });
+        const cocok = webllm.prebuiltAppConfig.model_list.filter(function (m) {
+          return /Qwen2\.5-(1\.5B|3B)-Instruct-q4f16_1-MLC|Llama-3\.2-(1B|3B)-Instruct-q4f16_1-MLC/.test(
+            m.model_id
+          );
+        });
+        // Dua larik sejajar, bukan larik objek, agar R menerima bentuk yang pasti.
+        const daftar = {
+          id: cocok.map(function (m) { return m.model_id; }),
+          vram: cocok.map(function (m) { return m.vram_required_MB || 0; }),
+        };
         Shiny.setInputValue("webllm_katalog", daftar, { priority: "event" });
         status("belum", "Pustaka WebLLM siap, model belum dimuat", 0);
       } catch (e) {
-        status("gagal", "Gagal memuat pustaka WebLLM: " + e.message, 0);
+        status(
+          "gagal",
+          "Gagal memuat pustaka WebLLM dari CDN: " + e.message +
+            ". Daftar model bawaan tetap dapat dipilih, tetapi pemuatan model memerlukan koneksi internet.",
+          0
+        );
       }
     }
   });
@@ -118,7 +136,7 @@
     }
   });
 
-  Shiny.addCustomMessageHandler("webllm_lepas", async function () {
+  Shiny.addCustomMessageHandler("webllm_lepas", async function (pesan) {
     if (engine) {
       await engine.unload();
       engine = null;

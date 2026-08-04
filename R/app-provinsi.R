@@ -3,7 +3,8 @@
 ui_provinsi <- function() {
   shiny::fluidPage(
     theme = tema_app(),
-    shiny::tags$head(shiny::tags$link(rel = "stylesheet", href = "klb/styles.css")),
+    shiny::tags$head(shiny::tags$link(rel = "stylesheet",
+                                     href = paste0("klb/styles.css?v=", versi_aset()))),
     shiny::uiOutput("kerangka")
   )
 }

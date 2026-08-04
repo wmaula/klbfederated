@@ -1,3 +1,78 @@
+#' Penanda versi aset antarmuka
+#'
+#' Ditempelkan pada URL berkas CSS dan JavaScript agar peramban mengambil versi
+#' terbaru setelah package diperbarui.
+#'
+#' @return Teks versi package.
+#' @export
+versi_aset <- function() {
+  as.character(utils::packageVersion("klbfederated"))
+}
+
+#' Menormalkan katalog model dari peramban
+#'
+#' Shiny menyederhanakan larik objek JSON menjadi `data.frame`, tetapi larik
+#' berisi satu objek atau objek dengan kunci berbeda tetap menjadi daftar.
+#' Fungsi ini menerima kedua bentuk tersebut dan selalu mengembalikan
+#' `data.frame` dengan kolom `id` dan `vram`.
+#'
+#' @param katalog Nilai `input$webllm_katalog` dari peramban.
+#' @return `data.frame` dengan kolom `id` dan `vram`.
+#' @export
+#' @examples
+#' normalkan_katalog(list(list(id = "Model-A", vram = 1024)))
+#' normalkan_katalog(data.frame(id = "Model-A", vram = 1024))
+normalkan_katalog <- function(katalog) {
+  kosong <- data.frame(id = character(0), vram = numeric(0), stringsAsFactors = FALSE)
+  if (is.null(katalog) || length(katalog) == 0) return(kosong)
+
+  if (is.data.frame(katalog)) {
+    id <- as.character(katalog$id)
+    vram <- if ("vram" %in% names(katalog)) suppressWarnings(as.numeric(katalog$vram))
+            else rep(NA_real_, length(id))
+  } else if (is.list(katalog) && !is.null(katalog$id) && length(katalog$id) > 0 &&
+             !is.list(katalog$id)) {
+    # Bentuk yang dikirim jembatan: dua larik sejajar id dan vram.
+    id <- as.character(unlist(katalog$id))
+    vram <- if (is.null(katalog$vram)) rep(NA_real_, length(id))
+            else suppressWarnings(as.numeric(unlist(katalog$vram)))
+    if (length(vram) != length(id)) vram <- rep(NA_real_, length(id))
+    vram[!is.finite(vram) | vram <= 0] <- NA_real_
+  } else if (is.atomic(katalog) && length(katalog) %% 2 == 0 &&
+             all(grepl("-MLC$", katalog[seq(1, length(katalog), by = 2)]))) {
+    # Bentuk lama: vektor rata berselang-seling id dan vram.
+    id <- as.character(katalog[seq(1, length(katalog), by = 2)])
+    vram <- suppressWarnings(as.numeric(katalog[seq(2, length(katalog), by = 2)]))
+  } else {
+    id <- vapply(katalog, function(m) {
+      nilai <- if (is.list(m)) m[["id"]] else m
+      if (is.null(nilai)) NA_character_ else as.character(nilai)[1]
+    }, character(1))
+    vram <- vapply(katalog, function(m) {
+      nilai <- if (is.list(m)) m[["vram"]] else NULL
+      if (is.null(nilai) || length(nilai) == 0) NA_real_ else suppressWarnings(as.numeric(nilai)[1])
+    }, numeric(1))
+  }
+  hasil <- data.frame(id = id, vram = vram, stringsAsFactors = FALSE)
+  hasil[!is.na(hasil$id) & nzchar(hasil$id), , drop = FALSE]
+}
+
+#' Daftar model WebLLM bawaan
+#'
+#' Dipakai untuk mengisi pilihan model sejak awal, sehingga daftar tidak pernah
+#' kosong meski katalog dari peramban belum sempat dikirim.
+#'
+#' @return Vektor bernama berisi id model.
+#' @export
+model_bawaan <- function() {
+  c(
+    "Qwen2.5 3B (perkiraan 2,4 GB VRAM)" = "Qwen2.5-3B-Instruct-q4f16_1-MLC",
+    "Llama 3.2 3B (perkiraan 2,2 GB VRAM)" = "Llama-3.2-3B-Instruct-q4f16_1-MLC",
+    "Qwen2.5 1.5B (perkiraan 1,6 GB VRAM)" = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC",
+    "Llama 3.2 1B (perkiraan 0,9 GB VRAM)" = "Llama-3.2-1B-Instruct-q4f16_1-MLC"
+  )
+}
+
 #' @keywords internal
 #' @noRd
 kartu_stat <- function(label, nilai, catatan = NULL) {
