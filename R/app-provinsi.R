@@ -253,11 +253,23 @@ server_provinsi <- function(con) {
       shiny::req(nrow(baris) > 0)
       p <- jsonlite::fromJSON(baris$payload[1], simplifyVector = FALSE)
 
+      # Payload JSON dapat memuat elemen kosong, sehingga tiap baris
+      # diseragamkan lebih dahulu agar penyusunan tabel tidak gagal.
       tabel_list <- function(x, kolom) {
         if (is.null(x) || length(x) == 0) return(NULL)
-        d <- do.call(rbind, lapply(x, function(r) as.data.frame(r, stringsAsFactors = FALSE)))
-        d <- d[, intersect(kolom, names(d)), drop = FALSE]
-        tabel_dt(bulat(d))
+        baris <- lapply(x, function(r) {
+          nilai <- lapply(r, function(y) if (is.null(y) || length(y) == 0) NA else y[[1]])
+          as.data.frame(nilai, stringsAsFactors = FALSE)
+        })
+        nama <- unique(unlist(lapply(baris, names)))
+        d <- do.call(rbind, lapply(baris, function(b) {
+          hilang <- setdiff(nama, names(b))
+          for (nm in hilang) b[[nm]] <- NA
+          b[nama]
+        }))
+        pilih <- intersect(kolom, names(d))
+        if (length(pilih) == 0) return(NULL)
+        tabel_dt(bulat(d[, pilih, drop = FALSE]))
       }
 
       shiny::div(class = "card mb-3",
