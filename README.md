@@ -1,6 +1,6 @@
 # klbfederated
 
-Analisis federated kejadian luar biasa untuk dinas kesehatan, dalam bentuk package R dengan dua aplikasi Shiny.
+Analisis federated kejadian luar biasa untuk dinas kesehatan kabupaten dan provinsi, dalam bentuk package R dengan dua aplikasi Shiny. Terintegrasi dengan LLM untuk pembuatan laporan investigasi kejadian luar biasa.
 
 Node kabupaten atau kota menarik data investigasi dari KoboToolbox, menjalankan analisis epidemiologi sesuai Pedoman Penyelidikan dan Penanggulangan KLB Kementerian Kesehatan edisi revisi III tahun 2020, menyusun draf laporan dengan bantuan model bahasa yang berjalan di peramban, lalu mengirim ringkasan agregat ke dashboard provinsi.
 
