@@ -17,7 +17,7 @@ KoboToolbox  ──httr2──>  Node kabupaten/kota  ──agregat──>  Dash
 
 ```r
 # install.packages("remotes")
-remotes::install_github("awatsiq/klbfederated")
+remotes::install_github("wmaula/klb-federated")
 ```
 
 ## Menjalankan
