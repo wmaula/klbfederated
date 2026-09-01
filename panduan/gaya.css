@@ -1,0 +1,9 @@
+body { font-size: 15px; }
+img { border: 1px solid #dfe4ea; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+figure { margin: 1.4rem 0; }
+figcaption { font-size: .85rem; color: #5d6b78; }
+h1 { border-bottom: 2px solid #16556b; padding-bottom: .3rem; margin-top: 2.2rem; }
+h2 { margin-top: 1.8rem; }
+table { font-size: .9rem; }
+.callout { margin: 1.2rem 0; }
+code { font-size: .88em; }
