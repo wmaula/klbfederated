@@ -56,7 +56,7 @@ plot_kurva_epidemik <- function(hasil, judul = "Kurva epidemik KLB") {
       caption = hasil$kurva$alasan_tipe
     ) +
     tema_klb() +
-    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1))
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1,size=14))
 }
 
 #' Grafik attack rate menurut kategori
@@ -76,7 +76,9 @@ plot_attack_rate <- function(tabel, judul = "Attack rate menurut kelompok") {
     ggplot2::labs(title = judul, x = "Attack rate (persen)", y = NULL) +
     tema_klb() +
     ggplot2::theme(panel.grid.major.y = ggplot2::element_blank(),
-                   panel.grid.major.x = ggplot2::element_line(linewidth = 0.25, colour = "grey88"))
+                   panel.grid.major.x = ggplot2::element_line(linewidth = 0.25, colour = "grey88"),
+                   axis.text.x=element_text(size=14),
+                   axis.text.y=element_text(size=14)
 }
 
 #' Grafik hasil analisis paparan
@@ -125,7 +127,9 @@ plot_gejala <- function(gejala, judul = "Distribusi tanda dan gejala pada kasus"
     ggplot2::labs(title = judul, x = "Persentase kasus", y = NULL) +
     tema_klb() +
     ggplot2::theme(panel.grid.major.y = ggplot2::element_blank(),
-                   panel.grid.major.x = ggplot2::element_line(linewidth = 0.25, colour = "grey88"))
+                   panel.grid.major.x = ggplot2::element_line(linewidth = 0.25, colour = "grey88"),
+                   axis.text.x=element_text(size=14),
+                   axis.text.y=element_text(size=14)
 }
 
 #' Spot map sebaran kasus
